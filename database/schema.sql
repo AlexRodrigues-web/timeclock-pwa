@@ -1,0 +1,57 @@
+CREATE DATABASE IF NOT EXISTS auditor_app CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE auditor_app;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(120) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS stores (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    brand VARCHAR(100) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    city VARCHAR(100) NULL,
+    district VARCHAR(100) NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS audit_types (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(120) NOT NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS work_days (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    work_date DATE NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_user_day (user_id, work_date),
+    CONSTRAINT fk_work_days_user FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS time_entries (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    work_day_id INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    store_id INT UNSIGNED NULL,
+    audit_type_id INT UNSIGNED NULL,
+    entry_type VARCHAR(50) NOT NULL,
+    entry_time DATETIME NOT NULL,
+    was_manual TINYINT(1) NOT NULL DEFAULT 0,
+    notes TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_time_entries_work_day FOREIGN KEY (work_day_id) REFERENCES work_days(id),
+    CONSTRAINT fk_time_entries_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_time_entries_store FOREIGN KEY (store_id) REFERENCES stores(id),
+    CONSTRAINT fk_time_entries_audit_type FOREIGN KEY (audit_type_id) REFERENCES audit_types(id)
+);
